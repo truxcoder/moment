@@ -2,10 +2,12 @@ package moment
 
 import "time"
 
+// IsLeapYear 是否为闰年
 func IsLeapYear(year int) bool {
 	return (year%4 == 0 && year%100 != 0) || (year%400 == 0)
 }
 
+// MonthDiffer 获取两个时间之间的月份差。精确到月。例如在同年同月，返回0。结果可为负。
 func MonthDiffer(after time.Time, before time.Time) int {
 	give := true
 	if after.Before(before) {
@@ -19,7 +21,8 @@ func MonthDiffer(after time.Time, before time.Time) int {
 	return sub
 }
 
-func SimpleAdd(t time.Time, year int, month int) time.Time {
+// AddDateByMonth 对time.AddDate的本地化封装。以月为精度相加。例如1月31日加1个月，返回2月28日，如为闰年，返回2月29日
+func AddDateByMonth(t time.Time, year int, month int) time.Time {
 	y, m, d := t.Date()
 	hour, mi, sec := t.Clock()
 	loc := t.Location()
@@ -47,8 +50,29 @@ func SimpleAdd(t time.Time, year int, month int) time.Time {
 	} else if mSub == 2 && !IsLeapYear(year) && d > 28 {
 		d = 28
 	}
-	return time.Date(year, time.Month(mSub), d, hour, mi, sec, 0, loc)
+	return GetCorrectDate(year, mSub, d, hour, mi, sec, 0, loc)
 }
 
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
+// GetCorrectDate 对time.Date的本地化封装。如果日期过大，直接得到当月的最后一年。例如闰年2月31日，得到2月29日
+func GetCorrectDate(year int, month int, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time {
+	if day < 1 {
+		return time.Date(year, time.Month(month), 1, hour, min, sec, nsec, loc)
+	}
+	switch month {
+	case 2:
+		if IsLeapYear(year) && day > 29 {
+			day = 29
+		} else if !IsLeapYear(year) && day > 28 {
+			day = 28
+		}
+	case 4, 6, 9, 11:
+		if day > 30 {
+			day = 30
+		}
+	default:
+		if day > 31 {
+			day = 31
+		}
+	}
+	return time.Date(year, time.Month(month), day, hour, min, sec, nsec, loc)
+}
