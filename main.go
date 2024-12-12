@@ -53,7 +53,7 @@ func AddDateByMonth(t time.Time, year int, month int) time.Time {
 	return GetCorrectDate(year, mSub, d, hour, mi, sec, 0, loc)
 }
 
-// GetCorrectDate 对time.Date的本地化封装。如果日期过大，直接得到当月的最后一年。例如闰年2月31日，得到2月29日
+// GetCorrectDate 对time.Date的本地化封装。如果日期过大，直接得到当月的最后一天。例如闰年2月31日，得到2月29日
 func GetCorrectDate(year int, month int, day int, hour int, min int, sec int, nsec int, loc *time.Location) time.Time {
 	if day < 1 {
 		return time.Date(year, time.Month(month), 1, hour, min, sec, nsec, loc)
